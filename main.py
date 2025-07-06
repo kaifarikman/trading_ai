@@ -8,12 +8,16 @@ from bot.bot import bot
 from bot.user.handlers import router as user_router
 from bot.admin.handlers import router as admin_router
 
+from bot.middleware import MediaGroupMiddleware
+
 import db.db as db
 
 
 async def main():
     await db.create_tables()
     dp = Dispatcher()
+    dp.message.middleware(MediaGroupMiddleware())
+
     dp.include_router(admin_router)
     dp.include_router(user_router)
 

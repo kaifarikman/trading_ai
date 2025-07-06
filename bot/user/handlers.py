@@ -1,5 +1,7 @@
 import os
-from bot.services.gigachat_api import get_query_to_gigachat
+from typing import List
+
+from bot.services.openai_api import analyze_xauusd_screenshots
 from asyncio import sleep
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
@@ -150,27 +152,46 @@ async def analysis_and_signal_callback(callback: CallbackQuery, state: FSMContex
 
 
 @router.message(WaitingScreenState.screenshot)
-async def screenshot_message(message: Message, state: FSMContext):
-    if not message.photo:
+async def screenshot_message(message: Message, state: FSMContext, album: List[Message] = None):
+
+    photos = []
+    if message.photo:
+        photo = message.photo[-1]
+        file_id = photo.file_id
+        file = await bot.get_file(file_id)
+        file_path = file.file_path
+
+        save_path = "bot/services/screenshots/photo.jpg"
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        await bot.download_file(file_path, save_path)
+        photos.append(save_path)
+    elif album is not None:
+        for i in range(len(album)):
+            element = album[i]
+            if element.photo:
+                file_id = element.photo[-1].file_id
+                save_path = f"bot/services/screenshots/photo{i}.jpg"
+                file = await bot.get_file(file_id)
+                file_path = file.file_path
+
+                save_path = "bot/services/screenshots/photo.jpg"
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                await bot.download_file(file_path, save_path)
+                photos.append(save_path)
+
+    if not photos:
         return await send_message_aiogram_message(
             message=message,
             text=texts.screenshot_invalid,
             keyboard=await keyboards.back_keyboard()
         )
+
     await state.clear()
-    photo = message.photo[-1]
-    file_id = photo.file_id
 
-    file = await bot.get_file(file_id)
-    file_path = file.file_path
-
-    save_path = "bot/services/screenshots/photo.jpg"
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    await bot.download_file(file_path, save_path)
-
-    gigachat_answer = get_query_to_gigachat()
-    if os.path.exists(save_path):
-        os.remove(save_path)
+    gigachat_answer = analyze_xauusd_screenshots(photos)
+    for save_path in photos:
+        if os.path.exists(save_path):
+            os.remove(save_path)
 
     await send_message_aiogram_message(
         message=message,
