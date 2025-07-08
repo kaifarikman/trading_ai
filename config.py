@@ -4,7 +4,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_PEER_ID = os.getenv("ADMIN_PEER_ID")
-OPENAI_API_KEY = os.getenv("token")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 user = os.getenv("user")
 password = os.getenv("password")

@@ -52,6 +52,7 @@ async def screenshot_user_callback_choice(callback: CallbackQuery, state: FSMCon
     else:
         text = texts.reject_screenshot
         await crud_users.change_user_status(int(peer_id), False)
+
     await bot.send_message(
         chat_id=peer_id,
         text=text,

@@ -3,11 +3,12 @@ from bot.default_functions import generate_keyboard
 
 async def start_keyboard():
     buttons = [
+        ('🔥 Вступить в команду', 'join_team'),
         ('📚 Бесплатное обучение', 'free_training'),
         ('📈 Анализ и сигнал', 'analysis_and_signal'),
         ('💬 Поддержка', 'support')
     ]
-    layout = [1, 1, 1]
+    layout = [1, 1, 1, 1]
     return generate_keyboard(buttons, layout)
 
 
@@ -18,6 +19,14 @@ async def exness_acc():
         ('Выйти в главное меню', 'start')
     ]
     layout = [1, 1, 1]
+    return generate_keyboard(buttons, layout)
+
+
+async def no_access_to_exness():
+    buttons = [
+        ('🔥Вступить в команду', 'join_team'),
+    ]
+    layout = [1, ]
     return generate_keyboard(buttons, layout)
 
 

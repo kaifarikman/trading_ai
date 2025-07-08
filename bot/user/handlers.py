@@ -17,6 +17,8 @@ from config import ADMIN_PEER_ID
 import db.crud.users as crud_users
 from db.models import User
 
+from bot.user.utils import check_last_datetime, is_authentication
+
 router = Router()
 
 
@@ -48,18 +50,19 @@ async def start_callback(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@router.callback_query(F.data == 'free_training')
-async def free_training_callback(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
+@router.callback_query(F.data == 'join_team')
+async def join_team_callback(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
+    await state.clear()
+
     peer_id = int(callback.from_user.id)
-    status = await crud_users.read_user(peer_id)
-    if status.ref_status:
+    if (await crud_users.read_user(peer_id)).ref_status:
         return await send_callback_aiogram_message(
             callback=callback,
-            text=texts.materials_text,
+            text=texts.already_registered,
             keyboard=await keyboards.back_keyboard()
         )
+
     await send_callback_aiogram_message(
         callback=callback,
         text=texts.exness_acc,
@@ -87,6 +90,7 @@ async def training_choice_callback(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_reply_markup()
         await callback.message.answer_video(
             video='BAACAgIAAxkBAAMuaGedvNVAig-iybztDXkfmANBkOUAApVsAALFeUBLD8B-bTzxm8A2BA',
+            # video='BAACAgIAAxkBAAIfxWhsLwoik6Xx1FrKJ801Q-6oLKkSAAKVbAACxXlAS7R4dbLR5AABLjYE',
             caption=texts.training_yes,
             reply_markup=await keyboards.back_keyboard(),
         )
@@ -116,6 +120,18 @@ async def screenshot_message(message: Message, state: FSMContext):
     )
 
 
+@router.callback_query(F.data == 'free_training')
+@is_authentication
+async def free_training_callback(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.answer()
+    await send_callback_aiogram_message(
+        callback=callback,
+        text=texts.materials_text,
+        keyboard=await keyboards.back_keyboard()
+    )
+
+
 @router.callback_query(F.data == 'support')
 async def support_callback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
@@ -132,18 +148,10 @@ class WaitingScreenState(StatesGroup):
 
 
 @router.callback_query(F.data == "analysis_and_signal")
+@is_authentication
 async def analysis_and_signal_callback(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.answer()
-    peer_id = int(callback.from_user.id)
-    status = await crud_users.read_user(peer_id)
-    if not status.ref_status:
-        return await send_callback_aiogram_message(
-            callback=callback,
-            text=texts.send_exness,
-            keyboard=await keyboards.exness_group()
-        )
-
     await send_callback_aiogram_message(
         callback=callback,
         text=texts.start_chat
@@ -153,7 +161,6 @@ async def analysis_and_signal_callback(callback: CallbackQuery, state: FSMContex
 
 @router.message(WaitingScreenState.screenshot)
 async def screenshot_message(message: Message, state: FSMContext, album: List[Message] = None):
-
     photos = []
     if message.photo:
         photo = message.photo[-1]
@@ -173,8 +180,6 @@ async def screenshot_message(message: Message, state: FSMContext, album: List[Me
                 save_path = f"bot/services/screenshots/photo{i}.jpg"
                 file = await bot.get_file(file_id)
                 file_path = file.file_path
-
-                save_path = "bot/services/screenshots/photo.jpg"
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
                 await bot.download_file(file_path, save_path)
                 photos.append(save_path)
@@ -188,13 +193,15 @@ async def screenshot_message(message: Message, state: FSMContext, album: List[Me
 
     await state.clear()
 
-    gigachat_answer = analyze_xauusd_screenshots(photos)
+    openai_answer = analyze_xauusd_screenshots(photos)
     for save_path in photos:
         if os.path.exists(save_path):
             os.remove(save_path)
 
     await send_message_aiogram_message(
         message=message,
-        text=gigachat_answer,
+        text=openai_answer,
         keyboard=await keyboards.back_keyboard(),
     )
+
+
