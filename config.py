@@ -18,6 +18,3 @@ DB_CONNECTION_URL = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{data
 
 def get_docker_link(name):
     return f'''sudo docker run -d --name {name} -e POSTGRES_PASSWORD={password} -e POSTGRES_USER={user} -e POSTGRES_DB={database} -p 5432:5432 postgres'''
-
-
-
