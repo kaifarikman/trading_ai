@@ -24,7 +24,6 @@ def analyze_xauusd_screenshots(image_paths: List[str]) -> Optional[str]:
     не отвечай объемно. лучше четко и структурированно
     """
 
-
     try:
         encoded_images = []
         for path in image_paths:

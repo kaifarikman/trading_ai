@@ -1,5 +1,5 @@
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -48,10 +48,10 @@ async def screenshot_user_callback_choice(callback: CallbackQuery, state: FSMCon
     choice, peer_id = callback.data.split('_')[-2:]
     if choice == 'accept':
         text = texts.accept_screenshot
-        await crud_users.change_user_status(int(peer_id), True)
+        await crud_users.change_user_ref_status(int(peer_id), True)
     else:
         text = texts.reject_screenshot
-        await crud_users.change_user_status(int(peer_id), False)
+        await crud_users.change_user_ref_status(int(peer_id), False)
 
     await bot.send_message(
         chat_id=peer_id,
@@ -97,3 +97,10 @@ async def send_post(message: Message, state: FSMContext):
         reply_markup=await keyboards.back_keyboard()
     )
     await state.clear()
+
+
+@router.callback_query(F.data == 'get_static')
+async def get_static_callback(callback: CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await state.clear()
+    users = await crud_users.get_users()

@@ -30,6 +30,9 @@ async def start_command(message: Message, state: FSMContext):
         user = User(
             peer_id=peer_id,
             ref_status=False,
+            pressed_start=True,
+            selected_learning=False,
+            selected_signals=False
         )
         await crud_users.create_user(user)
     await send_message_aiogram_message(
@@ -203,5 +206,3 @@ async def screenshot_message(message: Message, state: FSMContext, album: List[Me
         text=openai_answer,
         keyboard=await keyboards.back_keyboard(),
     )
-
-

@@ -7,3 +7,6 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     peer_id = Column(BigInteger)
     ref_status = Column(Boolean)
+    pressed_start = Column(Boolean)
+    selected_learning = Column(Boolean)
+    selected_signals = Column(Boolean)
